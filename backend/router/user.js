@@ -3,7 +3,7 @@ import { userSchema, userSignin } from "../middleware.js/zodmiddleware.js"; // E
 import {PrismaClient, UserType} from "@prisma/client"
 import { v4 as uuid }  from "uuid"
 import { ZodError } from "zod";
-import jwt, { JsonWebTokenError } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
 dotenv.config();
 const prisma=new PrismaClient();
@@ -33,7 +33,7 @@ userRouter.post("/create", async (req, res) => {
                 id:id,
                 email:value.email,
                 name:value.name,
-                roll:value.roll,
+                roll:value.roll ? value.roll : "",
                 type:value.type ==="student" ? UserType.STUDENT:UserType.TEACHER,
                 password:value.password
             }
@@ -49,8 +49,7 @@ userRouter.post("/create", async (req, res) => {
         if(err instanceof ZodError){
             console.log(err);
             return res.status(400).json({
-                message: "Validation error",
-                error: err.issues[0].message // Return the validation errors
+                message: err.issues[0].message // Return the validation errors
             });
         }else{
             return res.status(404).json({
@@ -67,10 +66,14 @@ userRouter.post("/signin",async(req,res)=>{
     let value=req.body;
     try{
     value=await userSignin.parseAsync(value);
-    
+    console.log("user");
     const user=await prisma.user.findFirst({
-        email:value.email,
+        where:{
+            email:value.email
+        }
     })
+    console.log(user);
+    
     if(!user){
         return res.status(404).json({
             message:"user not found"

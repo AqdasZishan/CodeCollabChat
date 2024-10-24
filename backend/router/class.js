@@ -1,9 +1,9 @@
 import express from "express"
 import { ZodError } from "zod";
-import { classSchema, projectSchema } from "../middleware.js/zodmiddleware";
+import { classSchema, projectSchema } from "../middleware.js/zodmiddleware.js";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuid }  from "uuid"
-import authmiddleware from "../middleware.js/authmiddleware";
+import authmiddleware from "../middleware.js/authmiddleware.js";
 const prisma=new PrismaClient();
 const router =express.Router();
 export default router
@@ -91,9 +91,6 @@ router.post("/project/create",authmiddleware,async (req,res)=>{
         return res.json({
             message:"project created"
         })
-        
-
-
     }catch(err){
         if(err instanceof ZodError){
             return res.status(404).json({

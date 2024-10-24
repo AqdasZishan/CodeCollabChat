@@ -10,6 +10,8 @@ import { socket } from '../useSocket';
 import CodeArea from './components/CodeArea';
 import { BrowserRouter,Routes,Route } from 'react-router-dom';
 import Card from './components/card';
+import Signin from './components/signin';
+import SignupPage from './components/signup';
 
 function App() {
 
@@ -36,6 +38,8 @@ function App() {
       <Routes>
         <Route path="/code" element={<CodeArea/>}> </Route>
         <Route path="/" element={<Card/>}> </Route>
+        <Route path="/login" element={<Signin/>}> </Route>
+        <Route path="/create" element={<SignupPage/>}> </Route>
       </Routes>
     </BrowserRouter>
     

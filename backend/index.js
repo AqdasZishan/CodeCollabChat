@@ -2,7 +2,7 @@ import http from 'http';
 import express from "express";
 import { Server } from "socket.io";
 import router from "./router/index.js"; // Adjusted import for the router
-
+import cors from "cors"
 const PORT = 3000;
 
 const app = express();
@@ -14,6 +14,7 @@ const io = new Server(httpServer, {
 });
 
 app.use(express.json());
+app.use(cors())
 
 app.get("/", (req, res) => {
     res.json({
