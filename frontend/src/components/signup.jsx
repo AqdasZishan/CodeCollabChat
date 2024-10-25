@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import backend from '../../backend.js'
 
@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [roll,setroll]=useState();
   const [password,setpassword]=useState();
   const [type,settype]=useState("STUDENT");
+  const navigate=useNavigate();
 
   async function handleSignup(){
     await axios.post(`${backend}/user/create`,{
@@ -27,9 +28,10 @@ export default function SignupPage() {
         roll
     }).then(res=>{
         console.log(res.data);
-        localStorage.getItem("token",`Bearer ${res.data.message.token}`)
+        localStorage.setItem("token",`Bearer ${res.data.token}`)
+        navigate("/")
     }).catch(err=>{
-        console.log(err.response.data)
+        console.log(err.response.data.message)
     })
   }
 

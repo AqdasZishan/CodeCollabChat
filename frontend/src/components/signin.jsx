@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,11 +8,14 @@ import axios from 'axios'
 import backend from '../../backend.js'
 
 
-export default function Signin() {
+
+export default function Signin({count,setcount}) {
   const [showPassword, setShowPassword] = useState(false)
   const [email,setemail]=useState("");
   const [password,setPassword]=useState("");
   const navigate=useNavigate();
+  
+
 
   async function handleLogin(){
     await axios.post(`${backend}/user/signin`,{
@@ -20,8 +23,9 @@ export default function Signin() {
         password
     }).then(res=>{
         console.log(res.data.message);
-        localStorage.getItem("token",`Bearer ${res.data.message.token}`)
+        localStorage.setItem("token",`Bearer ${res.data.token}`)
         alert(res.data.message);
+        navigate("/")
         
     }).catch(err=>{
         console.log(err.response.data.message)

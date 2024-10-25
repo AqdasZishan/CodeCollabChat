@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import router from "./router/index.js"; // Adjusted import for the router
 import cors from "cors"
 const PORT = 3000;
+const IP_ADDRESS = '0.0.0.0'; 
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -53,6 +54,6 @@ io.on("connection", (socket) => {
     });
 });
 
-httpServer.listen(PORT, () => {
-    console.log("Backend connected on port " + PORT);
+httpServer.listen(PORT,() => {
+    console.log("Backend connected on port " + PORT + " "+ IP_ADDRESS);
 });

@@ -12,14 +12,19 @@ export default router
 router.post("/class/create",authmiddleware,async(req,res)=>{
     const userId=req.USERID;
     const value=req.body;
+    
     try{
         await classSchema.parseAsync(value);
+
+        
+        
 
         let user=await prisma.user.findFirst({
             where:{
                 id:userId
             }
         })
+       
         //check  it is teacher only
         const type=user.type
         if(type==="STUDENT"){
@@ -34,11 +39,14 @@ router.post("/class/create",authmiddleware,async(req,res)=>{
                 name:value.name
             }
         })
+       
         if(room){
             return res.status(404).json({
                 message:"room already exists Please choose another name"
             })
         }
+      
+        
         const id=uuid();
         room =await prisma.class.create({
             data:{
@@ -47,6 +55,7 @@ router.post("/class/create",authmiddleware,async(req,res)=>{
                 teacherId:user.id
             }
         })
+
         return res.json({
             message:"room created"
         })
@@ -58,6 +67,92 @@ router.post("/class/create",authmiddleware,async(req,res)=>{
             })
             return;
         }
+    }
+})
+
+//get all classes
+router.get("/class/get/all",authmiddleware,async(req,res)=>{
+    const userId=req.USERID;    
+    try{
+        const classes=await prisma.class.findMany({
+            include:{
+                teacher:{
+                    select:{
+                        name:true
+                    }
+                }
+            }
+        });        
+        return res.json({
+            message:"all classes are fetched",
+            classes
+        })
+
+    }catch(err){       
+        res.status(404).json({
+            message:err
+        })
+        return 
+    }
+})
+
+//get class of student joined
+router.get("/class/get/teacher",authmiddleware,async(req,res)=>{
+    const userId=req.USERID;
+    
+    try{
+        const classes = await prisma.class.findMany({
+            where: {
+              teacher:{
+                id:userId
+              }
+            },
+            include:{
+                teacher:{
+                    select:{
+                        name:true
+                    }
+                }
+            }
+          });
+        console.log({classes});
+        
+        return res.json({
+            classes
+        })
+    }catch(err){
+        return res.json({
+            message:err
+        })
+    }
+})
+router.get("/class/get/student",authmiddleware,async(req,res)=>{
+    const userId=req.USERID;
+    
+    try{
+        const classes = await prisma.class.findMany({
+            where: {
+              students:{
+                id:userId
+              },
+            },
+            include:{
+                teacher:{
+                    select:{
+                        name:true
+                    }
+                }
+            }
+          });
+        console.log({classes});
+        
+        return res.json({
+            classes
+        })
+    }catch(err){
+        return res.json({
+            message:err
+        })
     }
 })
 
@@ -167,4 +262,6 @@ router.post("/project/delete/:id",authmiddleware,async (req,res)=>{
         })
     }
 })
+
+
 

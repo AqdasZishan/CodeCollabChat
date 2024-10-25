@@ -5,6 +5,7 @@ import { v4 as uuid }  from "uuid"
 import { ZodError } from "zod";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
+import authmiddlware from "../middleware.js/authmiddleware.js"
 dotenv.config();
 const prisma=new PrismaClient();
 
@@ -14,6 +15,8 @@ export default userRouter;
 //create user
 userRouter.post("/create", async (req, res) => {
     let value = req.body;
+    console.log({value});
+    
     try {
         value = await userSchema.parseAsync(value); 
        let user = await prisma.user.findFirst({
@@ -38,7 +41,7 @@ userRouter.post("/create", async (req, res) => {
                 password:value.password
             }
         })
-        const token=jwt.sign(id,process.env.JWT_SECRET);
+        const token=jwt.sign({id},process.env.JWT_SECRET);
 
         return res.status(201).json({
             message: "User created",
@@ -47,7 +50,6 @@ userRouter.post("/create", async (req, res) => {
             });
     } catch (err) {
         if(err instanceof ZodError){
-            console.log(err);
             return res.status(400).json({
                 message: err.issues[0].message // Return the validation errors
             });
@@ -84,7 +86,8 @@ userRouter.post("/signin",async(req,res)=>{
             message:"wrong password"
         })
     }
-    const token =jwt.sign(user.id,process.env.JWT_SECRET);
+    const id=user.id;
+    const token =jwt.sign(id,process.env.JWT_SECRET);
     return res.json({
         message:"user logged in successfully",
         token,
@@ -103,5 +106,37 @@ userRouter.post("/signin",async(req,res)=>{
         }
     }
 })
+
+userRouter.get("/details",authmiddlware,async(req,res)=>{
+    const userId=req.USERID;
+    
+    try{
+        const user =await prisma.user.findFirst({
+            where:{
+                id:userId
+            }
+        })
+        if(!user){
+            return res.status(404).json({
+                message:"user not found"
+            })
+        }
+        return res.json({
+            message:"fetched user details",
+            name:user.name,
+            email:user.email,
+            type:user.type,
+            roll:user.roll,
+            id:user.id
+        })
+
+    }catch(err){
+        res.status(404).json({
+            message:err
+        })
+        return 
+    }
+})
+
 
 

@@ -9,3 +9,13 @@ export const name =atom({
     key:"username",
     default:""
 })
+
+export const allclasses=atom({
+    key:"allclass",
+    default:[]
+})
+
+export const joinedClasses=atom({
+    key:"joinedClass",
+    default:[]
+})
