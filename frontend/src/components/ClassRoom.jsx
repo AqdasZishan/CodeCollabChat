@@ -19,63 +19,82 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
   const navigate=useNavigate();
 
   useEffect(()=>{
-    console.log(value);
-    
-  },[value])
-
-  useEffect(()=>{
     if(!token){
       navigate("/create")
     }
-    
-    async function fetchAll(){      
-      await axios.get(`${backend}/room/class/get/all`,{
-        headers:{
-          Authorization: token
-        }
-      }).then(res=>{
-        setAllClass(res.data.classes);        
-      }).catch(err=>{
-        console.log(err);
-        
-      })
-    }
     fetchAll();
-
+    console.log(value.type)
     if(value.type==="STUDENT"){
+      
       fetchStudent();
     }else{
       fetchTeacher();
     }
-    async function fetchTeacher(){
-      await axios.get(`${backend}/room/class/get/teacher`,{
-        headers:{
-          Authorization:token
-        }
-      }).then((res)=>{
-        console.log(res.data.classes);
-        setJoinedClass(res.data.classes) 
-      }).catch(err=>{
-        console.log(err);
-      })
-    }
-    async function fetchStudent(){
-      await axios.get(`${backend}/room/class/get/student`,{
-        headers:{
-          Authorization:token
-        }
-      }).then((res)=>{
-        console.log(res.data.classes);
-        setJoinedClass(res.data.classes) 
-      }).catch(err=>{
-        console.log(err);
-      })
-    }
-    
-   
+  
+
+  },[value])
 
 
-  },[])
+  async function fetchAll(){      
+    await axios.get(`${backend}/room/class/get/all`,{
+      headers:{
+        Authorization: token
+      }
+    }).then(res=>{
+      setAllClass(res.data.classes);        
+      
+    }).catch(err=>{
+      console.log(err);
+      
+    })
+  }
+  async function fetchTeacher(){
+    await axios.get(`${backend}/room/class/get/teacher`,{
+      headers:{
+        Authorization:token
+      }
+    }).then((res)=>{
+      setJoinedClass(res.data.classes) 
+    }).catch(err=>{
+      console.log(err);
+    })
+  }
+  async function fetchStudent(){
+    await axios.get(`${backend}/room/class/get/student`,{
+      headers:{
+        Authorization:token
+      }
+    }).then((res)=>{
+      console.log(res.data);
+      
+      setJoinedClass(res.data.classes) 
+    }).catch(err=>{
+      console.log(err);
+    })
+  }
+  
+  async function request(id,teacherId){    
+    axios.post(`${backend}/room/class/request/create`,{
+      classId:id,
+      teacherId:teacherId
+    },{
+      headers:{
+        Authorization:token
+      }
+    }).then(res=>{
+      if(res.data.status){
+        console.log(res.data.status)
+      }else{
+        console.log(res.data);
+      }
+    }).catch(err=>{
+      console.log(err)
+    })
+  }
+ 
+
+
+ 
 
     return (
       <>
@@ -87,7 +106,7 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
           </div>
           <div className="space-x-4">
             <Button variant="outline" className="bg-white" onClick={onJoinClick}>Join a Classroom</Button>
-            <Button className={`${value.type==="STUDENT"?"hidden":"hidden"} bg-gray-800 text-white hover:bg-gray-700`} onClick={onCreateClick}>
+            <Button className={`${value.type==="STUDENT"?"hidden":""} bg-gray-800 text-white hover:bg-gray-700`} onClick={onCreateClick}>
               <Plus className="mr-2 h-4 w-4" /> Create a Classroom
             </Button>
           </div>
@@ -99,10 +118,10 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
           </TabsList>
           <TabsContent  value="all">
             {
-              allclass.map((val)=>{
+             allclass && allclass.map((val)=>{
                 return(
                   <>
-                  <div key={val.id} className="pt-5 cursor-pointer">
+                  <div key={val.id} className="pt-5 cursor-pointer" onClick={()=>{request(val.id,val.teacher.id)}}>
                       <Card  className="bg-white shadow-sm ">
                         <CardContent className="p-4">
                           <h3 className="text-xl font-semibold">{val.name}</h3>
@@ -117,11 +136,10 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
             
           </TabsContent>
           <TabsContent value="my">
-          {
-              joinedclass.map((val)=>{
+          {joinedclass && joinedclass.map((val)=>{
                 return(
                   <>
-                  <div key={val.id} className="pt-5 cursor-pointer">
+                  <div key={val.id} className="pt-5 cursor-pointer" >
                       <Card  className="bg-white shadow-sm ">
                         <CardContent className="p-4">
                           <h3 className="text-xl font-semibold">{val.name}</h3>
@@ -131,8 +149,7 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
                       </div>
                   </>
                 )
-              })
-            }
+              })}
 
           </TabsContent>
         </Tabs>

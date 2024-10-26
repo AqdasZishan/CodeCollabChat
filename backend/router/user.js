@@ -15,7 +15,6 @@ export default userRouter;
 //create user
 userRouter.post("/create", async (req, res) => {
     let value = req.body;
-    console.log({value});
     
     try {
         value = await userSchema.parseAsync(value); 
@@ -37,7 +36,7 @@ userRouter.post("/create", async (req, res) => {
                 email:value.email,
                 name:value.name,
                 roll:value.roll ? value.roll : "",
-                type:value.type ==="student" ? UserType.STUDENT:UserType.TEACHER,
+                type:value.type ==="STUDENT" ? UserType.STUDENT:UserType.TEACHER,
                 password:value.password
             }
         })
@@ -68,14 +67,11 @@ userRouter.post("/signin",async(req,res)=>{
     let value=req.body;
     try{
     value=await userSignin.parseAsync(value);
-    console.log("user");
     const user=await prisma.user.findFirst({
         where:{
             email:value.email
         }
-    })
-    console.log(user);
-    
+    })    
     if(!user){
         return res.status(404).json({
             message:"user not found"

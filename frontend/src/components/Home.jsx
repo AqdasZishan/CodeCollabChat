@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import backend from '../../backend.js'
 import ProfileContent from './profile'
+import RequestsContent from './request'
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('classrooms')
@@ -30,7 +31,7 @@ export default function Home() {
     }
     
     if(value.id==""){
-      fetch()
+      fetch()      
     }
     
     async function fetch(){
@@ -52,7 +53,6 @@ export default function Home() {
   },[])
 
   async function  handleCreateClassroom(){
-    
     await axios.post(`${backend}/room/class/create`,
       {
         name:newClassroomName
@@ -61,7 +61,6 @@ export default function Home() {
         Authorization:token
       }},
     ).then(res=>{
-        console.log(res.data);
         setIsCreateModalOpen(false)
         console.log(`Creating classroom: ${newClassroomName}`)
         setNewClassroomName("")
@@ -81,21 +80,22 @@ export default function Home() {
       <aside className="w-64 bg-gray-100 p-4">
         <h1 className="text-2xl font-bold mb-8 text-gray-800">CollabTool</h1>
         <nav className="space-y-2">
-          <a  onClick={() => setActiveTab('home')} className={` cursor-pointer flex items-center px-4 py-2 rounded-lg ${activeTab === 'home' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
-            <BookOpen className="w-5 h-5 mr-3" />
-            Home
-          </a>
+          
           <a  onClick={() => setActiveTab('profile')} className={`cursor-pointer flex items-center px-4 py-2 rounded-lg ${activeTab === 'profile' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
             <UserCircle className="w-5 h-5 mr-3" />
             Profile
           </a>
           <a  onClick={() => setActiveTab('classrooms')} className={`cursor-pointer flex items-center px-4 py-2 rounded-lg ${activeTab === 'classrooms' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
             <Users className="w-5 h-5 mr-3" />
-            Class Rooms
+            Home
           </a>
-          <a  onClick={() => setActiveTab('collabrooms')} className={`cursor-pointer flex items-center px-4 py-2 rounded-lg ${activeTab === 'collabrooms' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
+          {/* <a  onClick={() => setActiveTab('collabrooms')} className={`cursor-pointer flex items-center px-4 py-2 rounded-lg ${activeTab === 'collabrooms' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
             <Users className="w-5 h-5 mr-3" />
             Collab Rooms
+          </a> */}
+          <a  onClick={() => setActiveTab('request')} className={`${value && value.type=="STUDENT"?"hidden":""} cursor-pointer flex items-center px-4 py-2 rounded-lg ${activeTab === 'request' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
+            <BookOpen className="w-5 h-5 mr-3" />
+            REQUESTS
           </a>
         </nav>
       </aside>
@@ -109,6 +109,7 @@ export default function Home() {
           />
         )}
         {activeTab === 'profile' && <ProfileContent />}
+        {activeTab === 'request' && <RequestsContent/>}
       </main>
 
       {/* Join Classroom Modal */}

@@ -24,6 +24,8 @@ model User{
   classrooms Class[] @relation("Student")
   Teacherclass Class[] @relation("Teacher")
   projects project[]
+  StudentRequest Request[] @relation("Student")
+  TeacherRequest Request[] @relation("Teacher")
 }
 
 model Class{
@@ -35,7 +37,7 @@ model Class{
   projects project[]
   students User[] @relation("Student")
   teacher User @relation("Teacher",fields: [teacherId],references: [id])
-
+  request Request[]
   }
 
 model project{
@@ -46,11 +48,27 @@ model project{
 
   user User @relation(fields: [userId],references: [id])
   class Class @relation(fields: [classId],references: [id])
+}
 
+model Request{
+  id String @id
+  classId String
+  StudentId String
+  TeacherId String
+  state State
 
+  class Class @relation(fields: [classId],references: [id])
+  student User @relation("Student",fields:[StudentId],references: [id])
+  teacher User @relation("Teacher",fields: [TeacherId],references: [id])
+
+  @@unique([classId, StudentId])
 }
 
 enum UserType{
   STUDENT
   TEACHER
+}
+enum State{
+  PENDING
+  REJECTED
 }
