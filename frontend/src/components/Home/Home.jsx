@@ -9,11 +9,11 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { BookOpen, Users, UserCircle, Search, Plus } from "lucide-react"
 import { useContext } from 'react'
-import { Authcontext } from './AuthProvider'
+import { Authcontext } from '../AuthProvider'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import backend from '../../backend.js'
-import ProfileContent from './profile'
+import backend from '../../../backend.js'
+import ProfileContent from '../Home/profile'
 import RequestsContent from './request'
 
 export default function Home() {
@@ -25,32 +25,7 @@ export default function Home() {
   const token=localStorage.getItem("token");
   const navigate=useNavigate();
 
-  useEffect(()=>{
-    if(!token){
-      navigate("/login")
-    }
-    
-    if(value.id==""){
-      fetch()      
-    }
-    
-    async function fetch(){
-      await axios.get(`${backend}/user/details`,{
-        headers:{
-          Authorization:token
-        }
-      }).then(res=>{        
-        value.setname(res.data.name);
-        value.setemail(res.data.email);
-        value.settype(res.data.type);
-        value.setroll(res.data.roll);
-        value.setid(res.data.id);
-      }).catch(err=>{
-        console.log(err);
-        
-      })
-    }
-  },[])
+  
 
   async function  handleCreateClassroom(){
     await axios.post(`${backend}/room/class/create`,

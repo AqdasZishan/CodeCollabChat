@@ -231,7 +231,7 @@ router.post("/class/request/create",authmiddleware,async(req,res)=>{
                 }
             },
             include:{
-                
+
             }
         })
         console.log({joined});
@@ -382,11 +382,12 @@ router.post("/class/request/handle",authmiddleware,async(req,res)=>{
 
 //create project
 router.post("/project/create",authmiddleware,async (req,res)=>{
+    
     const userId=req.USERID;
-    const value =req.value;
+    const value =req.body;
     try{
         await projectSchema.parseAsync(value);
-
+  
         const classname=await prisma.class.findFirst({
             where:{
                 id:value.id
@@ -406,9 +407,11 @@ router.post("/project/create",authmiddleware,async (req,res)=>{
                 classId:value.classId
             }
         })
+        
 
         return res.json({
-            message:"project created"
+            message:"project created",
+            project
         })
     }catch(err){
         if(err instanceof ZodError){
@@ -422,6 +425,47 @@ router.post("/project/create",authmiddleware,async (req,res)=>{
         }
     }
 })
+
+//get all projects
+router.get("/class/:classId",authmiddleware,async(req,res)=>{
+    const userId=req.USERID;
+    const classId=req.params.classId; 
+    console.log({classId});
+    
+    try{
+        const projects=await prisma.project.findMany({
+            where:{
+                classId:classId
+            },
+            include:{
+                user:{
+                    select:{
+                        name:true,
+                        email:true,
+                        roll:true,
+                        id:true
+                    }
+                },
+                class:{
+                    select:{
+                        name:true
+                    }
+                }
+            }
+        })
+        return res.json({
+            projects
+        })
+
+    }catch(err){
+        return res.status(404).json({
+            message:err
+        })
+    }
+})
+
+//get my projects
+
 
 
 //delete project

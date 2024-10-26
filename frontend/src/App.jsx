@@ -12,10 +12,11 @@ import { BrowserRouter,Routes,Route } from 'react-router-dom';
 import Card from './components/card';
 import Signin from './components/signin';
 import SignupPage from './components/signup';
-import Home from './components/Home';
+import Home from './components/Home/Home';
+import Project from './components/Home/Project';
 
 function App() {
-  const[count,setcount]=useState(0);
+
 
   useEffect(()=>{
     socket.on("connect",(data)=>{
@@ -40,9 +41,9 @@ function App() {
       <Routes>
         <Route path="/code" element={<CodeArea/>}> </Route>
         <Route path="/" element={<Home/>}> </Route>
-        {/* <Route path="/home" element={<Home/>}> </Route> */}
-        <Route path="/login" element={<Signin count={count} setcount={setcount} />}> </Route>
+        <Route path="/login" element={<Signin />}> </Route>
         <Route path="/create" element={<SignupPage/>}> </Route>
+        <Route path="/class/:classId" element={<Project/>}></Route>
       </Routes>
     </BrowserRouter>
     

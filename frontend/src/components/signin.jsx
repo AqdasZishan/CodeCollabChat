@@ -9,7 +9,7 @@ import backend from '../../backend.js'
 
 
 
-export default function Signin({count,setcount}) {
+export default function Signin() {
   const [showPassword, setShowPassword] = useState(false)
   const [email,setemail]=useState("");
   const [password,setPassword]=useState("");

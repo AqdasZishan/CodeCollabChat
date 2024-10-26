@@ -1,5 +1,5 @@
 import { useContext } from "react"
-import { Authcontext } from "./AuthProvider"
+import { Authcontext } from "../AuthProvider"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"

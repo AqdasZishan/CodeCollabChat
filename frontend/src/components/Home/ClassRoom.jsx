@@ -6,10 +6,10 @@ import { Search, Plus } from "lucide-react"
 import { useRecoilState } from "recoil"
 import { useContext, useEffect, useState } from "react"
 import axios from "axios"
-import backend from "../../backend"
+import backend from "../../../backend"
 import { allclasses, joinedClasses } from "@/state/roomid"
 import { useNavigate } from "react-router-dom"
-import { Authcontext } from "./AuthProvider"
+import { Authcontext } from "../AuthProvider"
 
 export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
   const [allclass,setAllClass]=useRecoilState(allclasses);
@@ -30,11 +30,9 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
     }else{
       fetchTeacher();
     }
-  
+  },[])
 
-  },[value])
-
-
+  //fetch all classes
   async function fetchAll(){      
     await axios.get(`${backend}/room/class/get/all`,{
       headers:{
@@ -48,6 +46,8 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
       
     })
   }
+
+  //fetch teacher classes
   async function fetchTeacher(){
     await axios.get(`${backend}/room/class/get/teacher`,{
       headers:{
@@ -59,6 +59,8 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
       console.log(err);
     })
   }
+
+  //fetch student classes
   async function fetchStudent(){
     await axios.get(`${backend}/room/class/get/student`,{
       headers:{
@@ -72,8 +74,12 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
       console.log(err);
     })
   }
-  
+  //request to join the class
   async function request(id,teacherId){    
+    if(value.type==="TEACHER"){
+      alert("teacher cannot join others class ask admin")
+      return 
+    }
     axios.post(`${backend}/room/class/request/create`,{
       classId:id,
       teacherId:teacherId
@@ -92,7 +98,10 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
     })
   }
  
-
+  //open the class
+  async function OpenClass(classId){
+    navigate(`/class/${classId}`);
+  }
 
  
 
@@ -111,10 +120,11 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
             </Button>
           </div>
         </div>
-        <Tabs defaultValue="all" className="mb-6">
+        <Tabs defaultValue="my" className="mb-6">
           <TabsList className="bg-white">
+          <TabsTrigger value="my" className="data-[state=active]:bg-gray-100">My Classrooms</TabsTrigger>
             <TabsTrigger value="all" className="data-[state=active]:bg-gray-100">All Classrooms</TabsTrigger>
-            <TabsTrigger value="my" className="data-[state=active]:bg-gray-100">My Classrooms</TabsTrigger>
+            
           </TabsList>
           <TabsContent  value="all">
             {
@@ -139,7 +149,7 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
           {joinedclass && joinedclass.map((val)=>{
                 return(
                   <>
-                  <div key={val.id} className="pt-5 cursor-pointer" >
+                  <div key={val.id} className="pt-5 cursor-pointer"onClick={()=>{OpenClass(val.id)}} >
                       <Card  className="bg-white shadow-sm ">
                         <CardContent className="p-4">
                           <h3 className="text-xl font-semibold">{val.name}</h3>

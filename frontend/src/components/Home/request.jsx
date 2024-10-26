@@ -1,9 +1,8 @@
-import React, { useEffect } from "react";
-import { useState } from "react";
+import React, { useEffect,useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card,CardContent } from "@/components/ui/card"
-import backend from "../../backend";
+import backend from "../../../backend";
 import axios from "axios";
 
 
