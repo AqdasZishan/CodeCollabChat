@@ -10,13 +10,21 @@ import backend from "../../../backend"
 import { allclasses, joinedClasses } from "@/state/roomid"
 import { useNavigate } from "react-router-dom"
 import { Authcontext } from "../AuthProvider"
+import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
-export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
+
+
+export default function ClassroomsContent() {
   const [allclass,setAllClass]=useRecoilState(allclasses);
   const [joinedclass,setJoinedClass]=useRecoilState(joinedClasses);
   const value=useContext(Authcontext)
   const token=localStorage.getItem("token");
   const navigate=useNavigate();
+
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [newClassroomName, setNewClassroomName] = useState('')
 
   useEffect(()=>{
     
@@ -98,6 +106,31 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
       console.log(err)
     })
   }
+
+
+
+  //create a classRoom
+  async function  handleCreateClassroom(){
+    await axios.post(`${backend}/room/class/create`,
+      {
+        name:newClassroomName
+      },
+      {headers:{
+        Authorization:token
+      }},
+    ).then(res=>{
+      console.log(res.data);
+      
+        setJoinedClass((prev)=>[...prev,res.data.room])
+        setIsCreateModalOpen(false)
+        console.log(`Creating classroom: ${newClassroomName}`)
+        setNewClassroomName("")
+        
+      }).catch(err=>{
+        console.log(err);
+        
+      })
+  }
  
   //open the class
   async function OpenClass(classId){
@@ -115,8 +148,8 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
           <div className="space-x-4">
-            <Button variant="outline" className="bg-white" onClick={onJoinClick}>Join a Classroom</Button>
-            <Button className={`${value.type==="STUDENT"?"hidden":""} bg-gray-800 text-white hover:bg-gray-700`} onClick={onCreateClick}>
+            <Button variant="outline" className="bg-white" onClick={()=>{setIsJoinModalOpen(true)}}>Join a Classroom</Button>
+            <Button className={`${value.type==="STUDENT"?"hidden":""} bg-gray-800 text-white hover:bg-gray-700`} onClick={()=>{setIsCreateModalOpen(true)}}>
               <Plus className="mr-2 h-4 w-4" /> Create a Classroom
             </Button>
           </div>
@@ -164,6 +197,56 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
 
           </TabsContent>
         </Tabs>
+
+
+           {/* Join Classroom Modal */}
+        <Dialog open={isJoinModalOpen} onOpenChange={setIsJoinModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Join a Classroom</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Input id="classroomCode" placeholder="Enter Classroom Code" className="col-span-4" />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsJoinModalOpen(false)}>Close</Button>
+            <Button onClick={() => {
+              // Handle join logic here
+              setIsJoinModalOpen(false)
+            }}>Join</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
+    {/* Create Classroom Modal */}
+      <Dialog  open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create a Classroom</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="classroomName" className="col-span-4">
+                Classroom Name
+              </Label>
+              <Input 
+                id="classroomName" 
+                value={newClassroomName}
+                onChange={(e) => setNewClassroomName(e.target.value)}
+                placeholder="Enter Classroom Name" 
+                className="col-span-4" 
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
+            <Button onClick={()=>{handleCreateClassroom()}}  className="bg-black text-white hover:bg-gray-800">Create</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       </>
     )
   }

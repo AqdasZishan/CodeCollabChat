@@ -55,9 +55,22 @@ router.post("/class/create",authmiddleware,async(req,res)=>{
                 teacherId:user.id
             }
         })
+        room=await prisma.class.findFirst({
+            where:{
+                id:id,
+            },
+            include:{
+                teacher:{
+                    select:{
+                        name:true
+                    }
+                }
+            }
+        })
 
         return res.json({
-            message:"room created"
+            message:"room created",
+            room
         })
 
     }catch(err){
@@ -399,12 +412,33 @@ router.post("/project/create",authmiddleware,async (req,res)=>{
             })
         }
         const id=uuid();
-        const project=await  prisma.project.create({
+        let project=await  prisma.project.create({
             data:{
                 id,
                 name:value.name,
                 userId: userId,
                 classId:value.classId
+            }
+        })
+
+        project=await prisma.project.findFirst({
+            where:{
+                id:id
+            },
+            include:{
+                user:{
+                    select:{
+                        name:true,
+                        email:true,
+                        roll:true,
+                        id:true
+                    }
+                },
+                class:{
+                    select:{
+                        name:true
+                    }
+                }
             }
         })
         

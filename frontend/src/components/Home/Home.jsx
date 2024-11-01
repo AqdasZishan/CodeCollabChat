@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import ClassroomsContent from './ClassRoom'
 
-import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+
 import { BookOpen, Users, UserCircle, Search, Plus,LogOut } from "lucide-react"
 import { useContext } from 'react'
 import { Authcontext } from '../AuthProvider'
@@ -18,33 +14,12 @@ import RequestsContent from './request'
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('classrooms')
-  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [newClassroomName, setNewClassroomName] = useState('')
+
   const value=useContext(Authcontext)
-  const token=localStorage.getItem("token");
   const navigate=useNavigate();
 
   
 
-  async function  handleCreateClassroom(){
-    await axios.post(`${backend}/room/class/create`,
-      {
-        name:newClassroomName
-      },
-      {headers:{
-        Authorization:token
-      }},
-    ).then(res=>{
-        setIsCreateModalOpen(false)
-        console.log(`Creating classroom: ${newClassroomName}`)
-        setNewClassroomName("")
-        
-      }).catch(err=>{
-        console.log(err);
-        
-      })
-  }
   function logout(){
     localStorage.removeItem("token")
     navigate("/login")
@@ -94,63 +69,16 @@ export default function Home() {
 
       {/* Main content */}
       <main className="flex-1 p-8 overflow-auto bg-gray-50">
-        {activeTab === 'classrooms' && (
-          <ClassroomsContent 
-            onJoinClick={() => setIsJoinModalOpen(true)} 
-            onCreateClick={() => setIsCreateModalOpen(true)}
-          />
-        )}
+        {activeTab === 'classrooms' && <ClassroomsContent/>}
         {activeTab === 'profile' && <ProfileContent />}
         {activeTab === 'request' && <RequestsContent/>}
       </main>
 
-      {/* Join Classroom Modal */}
-      <Dialog open={isJoinModalOpen} onOpenChange={setIsJoinModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Join a Classroom</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Input id="classroomCode" placeholder="Enter Classroom Code" className="col-span-4" />
-            </div>
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setIsJoinModalOpen(false)}>Close</Button>
-            <Button onClick={() => {
-              // Handle join logic here
-              setIsJoinModalOpen(false)
-            }}>Join</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+   
+      
 
-      {/* Create Classroom Modal */}
-      <Dialog  open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create a Classroom</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="classroomName" className="col-span-4">
-                Classroom Name
-              </Label>
-              <Input 
-                id="classroomName" 
-                value={newClassroomName}
-                onChange={(e) => setNewClassroomName(e.target.value)}
-                placeholder="Enter Classroom Name" 
-                className="col-span-4" 
-              />
-            </div>
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
-            <Button onClick={()=>{handleCreateClassroom()}}  className="bg-black text-white hover:bg-gray-800">Create</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      
+      
     </div>
   )
 }

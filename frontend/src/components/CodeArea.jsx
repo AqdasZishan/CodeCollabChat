@@ -4,12 +4,12 @@ import {tokyoNightStorm} from "@uiw/codemirror-theme-tokyo-night-storm"
 import {vscodeDark} from "@uiw/codemirror-theme-vscode";
 import {vscodeLight} from "@uiw/codemirror-theme-vscode";
 import  {bbedit} from "@uiw/codemirror-theme-bbedit" 
-import { socket } from '../../useSocket';
+import {  socket } from '../../useSocket';
 import { useRecoilValue } from 'recoil';
 import { name, roomId } from '../state/roomid';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -34,15 +34,21 @@ export default function CodeArea() {
   const [code, setCode] = useState('console.log("hello world");')
   const [output, setOutput] = useState('')
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-  const {projectId}=useParams()
+  const {projectId,}=useParams()
   const value=useContext(Authcontext)
   const {state}=useLocation();
-
  
 
   const [data, setdata] = React.useState("console.log('hello world!');");
-    const roomid=useRecoilValue(roomId)
-    const username =useRecoilValue(name);
+
+    useEffect(()=>{
+      socket.emit("privateRoomJoin",projectId)
+
+      socket.on("privateMessage",(data)=>{
+        setdata(data)
+        
+      })
+    },[])
 
   const handleRunCode = () => {
     try {
@@ -53,12 +59,18 @@ export default function CodeArea() {
       setOutput(String(error))
     }
   }
+
+  function handleCodeEditor(val,projectId){
+    setdata(val)
+    socket.emit("privateMessage",{roomid:projectId,data:val})
+  }
+
   if(!value){
     <div>
         Loading...
     </div>
   }
-  console.log(state);
+
   
 
   return (
@@ -165,7 +177,7 @@ export default function CodeArea() {
                  automaticLayout: true
                }}
              /> */}
-             <CodeMirror value={data} height="600px" extensions={[javascript({ jsx: true })]} theme={vscodeDark}  />;
+             <CodeMirror  onChange={(cm)=>{handleCodeEditor(cm,projectId)}} value={data} height="600px" extensions={[javascript({ jsx: true })]} theme={vscodeDark}  />
            </CardContent>
          </Card>
               

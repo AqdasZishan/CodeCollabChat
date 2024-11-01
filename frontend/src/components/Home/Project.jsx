@@ -33,6 +33,7 @@ export default function Project({ classroomName }) {
             Authorization:token
         }
     }).then(res=>{
+        setProjects((prev)=>[...prev,res.data.project])
         console.log(res.data.project);
         setNewProjectName('')
         setIsCreateProjectModalOpen(false)

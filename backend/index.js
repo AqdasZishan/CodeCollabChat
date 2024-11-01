@@ -43,14 +43,13 @@ io.on("connection", (socket) => {
         console.log({ data, roomid });
     });
 
-    socket.on("publicmessage", (data) => {
-        socket.broadcast.emit("publicmessagebackend", data);
-        console.log({ data });
-    });
+    // socket.on("publicmessage", (data) => {
+    //     socket.broadcast.emit("publicmessagebackend", data);
+    //     console.log({ data });
+    // });
 
     socket.on("message", (data) => {
         console.log(data);
-        socket.broadcast.emit("message", data);
     });
 });
 
