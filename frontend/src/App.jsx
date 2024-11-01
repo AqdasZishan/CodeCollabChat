@@ -37,15 +37,15 @@ function App() {
 
   return (
     <>
-    <BrowserRouter>
+ 
       <Routes>
-        <Route path="/code" element={<CodeArea/>}> </Route>
+        <Route path="/code/:classId/:projectId" element={<CodeArea/>}> </Route>
         <Route path="/" element={<Home/>}> </Route>
         <Route path="/login" element={<Signin />}> </Route>
         <Route path="/create" element={<SignupPage/>}> </Route>
         <Route path="/class/:classId" element={<Project/>}></Route>
       </Routes>
-    </BrowserRouter>
+   
     
   
 

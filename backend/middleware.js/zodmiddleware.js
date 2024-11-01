@@ -6,7 +6,7 @@ export const userSchema=z.object({
     .string({required_error:"email is required"})
     .email({message:"Not a valid email"}),
     name:z.string({required_error:"name is required"}),
-    type:z.enum(["STUDENT","TEACHER"]),
+    type:z.enum(["STUDENT","TEACHER"],{required_error:"please select a valid user type"}),
     password:z.string({required_error:"password is rquired"})
     .min(6,{message:"minimum 6 length of password is required"})
 

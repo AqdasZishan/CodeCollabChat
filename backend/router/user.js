@@ -17,7 +17,14 @@ userRouter.post("/create", async (req, res) => {
     let value = req.body;
     
     try {
-        value = await userSchema.parseAsync(value); 
+         await userSchema.parseAsync(value); 
+        console.log(value);
+        if(value.type==="STUDENT" && !value.roll || value.roll.length<=3){
+            return res.status(404).json({
+                message:"roll cannot be empty please type roll grater than 3digit"
+            })
+        }
+        console.log("adsfadsffd");
        let user = await prisma.user.findFirst({
         where: {
             email: value.email,

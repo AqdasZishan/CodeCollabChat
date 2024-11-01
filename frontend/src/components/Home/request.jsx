@@ -19,6 +19,7 @@ export default function RequestsContent(){
 
     useEffect(()=>{
         async function request(){
+  
             
             await axios.get(`${backend}/room/class/request/get`,{
                 headers:{
@@ -51,7 +52,15 @@ export default function RequestsContent(){
                 Authorization:token
             }
         }).then(res=>{
-            console.log(res.data);
+            console.log(res.data)
+            
+
+            value=requests.filter((req)=>{
+             return req.id!==requestId
+            })
+            console.log(value);
+            setRequest(value);
+            
             
         }).catch(err=>{
             console.log(err);

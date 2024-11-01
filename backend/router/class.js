@@ -464,10 +464,6 @@ router.get("/class/:classId",authmiddleware,async(req,res)=>{
     }
 })
 
-//get my projects
-
-
-
 //delete project
 router.post("/project/delete/:id",authmiddleware,async (req,res)=>{
     const id=req.params.id;
@@ -498,6 +494,8 @@ router.post("/project/delete/:id",authmiddleware,async (req,res)=>{
         })
     }
 })
+
+
 
 
 

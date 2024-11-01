@@ -25,7 +25,7 @@ export default function Signin() {
         console.log(res.data.message);
         localStorage.setItem("token",`Bearer ${res.data.token}`)
         alert(res.data.message);
-        navigate("/")
+        window.location.href="/"
         
     }).catch(err=>{
         console.log(err.response.data.message)

@@ -16,21 +16,24 @@ export default function SignupPage() {
   const [name,setname]=useState();
   const [roll,setroll]=useState();
   const [password,setpassword]=useState();
-  const [type,settype]=useState("STUDENT");
+  const [type,settype]=useState("");
   const navigate=useNavigate();
 
   async function handleSignup(){
+    
     await axios.post(`${backend}/user/create`,{
         email,
         name,
         type,
         password,
-        roll
+        roll,
     }).then(res=>{
         console.log(res.data);
         localStorage.setItem("token",`Bearer ${res.data.token}`)
-        navigate("/")
+        window.location.href="/"
     }).catch(err=>{
+      console.log(err);
+      
         console.log(err.response.data.message)
     })
   }

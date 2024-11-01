@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Search, Plus } from "lucide-react"
 import axios from 'axios'
 import backend from '../../../backend'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Authcontext } from '../AuthProvider'
 
 // Mock data for projects
@@ -21,6 +21,7 @@ export default function Project({ classroomName }) {
   const {classId}=useParams();
   const token=localStorage.getItem("token");
   const value=useContext(Authcontext);
+  const navigate=useNavigate();
 
   //create project
   async function handleCreateProject(){
@@ -50,11 +51,25 @@ export default function Project({ classroomName }) {
             }
         }).then(res=>{
             setProjects(res.data.projects)
+            console.log(res.data.projects);
+            
                    
         }).catch(err=>{
             console.log(err);
             
         })
+    }
+
+    async function handleCodeEditor(projectId,projectName,userId){
+      console.log("helloo from code editor whyyy??");
+      
+      navigate(`/code/${classId}/${projectId}`,{state:{projectName,userId}});
+    }
+
+    async function handleCodeEditorAll(projectId,projectName,userId){
+      console.log(projectName,userId);
+      
+      navigate(`/code/${classId}/${projectId}`,{state:{projectName,userId}});
     }
   useEffect(()=>{
     FetchProjects();
@@ -78,15 +93,15 @@ export default function Project({ classroomName }) {
           <Plus className="mr-2 h-4 w-4" /> Create a Project
         </Button>
       </div>
-      <Tabs defaultValue="all" className="mb-6">
+      <Tabs defaultValue="my" className="mb-6">
         <TabsList className="bg-white">
+        <TabsTrigger value="my" className="data-[state=active]:bg-gray-100">My Projects</TabsTrigger>
           <TabsTrigger value="all" className="data-[state=active]:bg-gray-100">All Projects</TabsTrigger>
-          <TabsTrigger value="my" className="data-[state=active]:bg-gray-100">My Projects</TabsTrigger>
         </TabsList>
         <TabsContent value="all">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <Card key={project.id} className="bg-white shadow-sm">
+              <Card key={project.id} onClick={()=>{handleCodeEditorAll(project.id,project.name,project.user.id)}} className="bg-white shadow-sm">
                 <CardContent className="p-4">
                 <h3 className="text-xl font-semibold">{project.name}</h3>
                   <p className="text-sm text-gray-500">Created by: {project.user.name}</p>
@@ -101,7 +116,7 @@ export default function Project({ classroomName }) {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Filter projects to show only the current user's projects */}
             {projects.filter(project => project.user.id === value.id).map((project) => (
-              <Card key={project.id} className="bg-white shadow-sm">
+              <Card key={project.id} onClick={()=>{handleCodeEditor(project.id,project.name,project.user.id)}} className="bg-white shadow-sm cursor-pointer">
                 <CardContent className="p-4">
                   <h3 className="text-xl font-semibold">{project.name}</h3>
                   <p className="text-sm text-gray-500">Created by: {project.user.name}</p>

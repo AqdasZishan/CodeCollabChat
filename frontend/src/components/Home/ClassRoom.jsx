@@ -19,18 +19,19 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
   const navigate=useNavigate();
 
   useEffect(()=>{
+    
     if(!token){
       navigate("/create")
     }
+    
+    
     fetchAll();
-    console.log(value.type)
     if(value.type==="STUDENT"){
-      
       fetchStudent();
     }else{
       fetchTeacher();
     }
-  },[])
+  },[value])
 
   //fetch all classes
   async function fetchAll(){      
@@ -103,7 +104,7 @@ export default function ClassroomsContent({ onJoinClick, onCreateClick }) {
     navigate(`/class/${classId}`);
   }
 
- 
+
 
     return (
       <>

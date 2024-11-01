@@ -1,6 +1,9 @@
 import { createContext, useState,useEffect } from "react";
 import axios from "axios";
 import backend from "../../backend";
+import { validate } from "uuid";
+import { useNavigate } from "react-router-dom";
+
 
 export const Authcontext=createContext(null);
 const AuthProvider=({children})=>{
@@ -10,6 +13,7 @@ const AuthProvider=({children})=>{
     const[roll,setroll]=useState("");
     const[id,setid]=useState("");
     const token=localStorage.getItem("token")
+    const navigate=useNavigate()
 
     useEffect(()=>{
         if(!token){
@@ -29,15 +33,19 @@ const AuthProvider=({children})=>{
             setid(res.data.id);
           }).catch(err=>{
             console.log(err);
-            
+            navigate("/login")
           })
         }
       },[])
+      useEffect(()=>{
+        console.log({name});
+        
+      },[name])
 
 
     return (
         <>
-        <Authcontext.Provider  value={{name,email,type,roll,id,setname,setemail,settype,setroll,setid}}>
+        <Authcontext.Provider  value={{name,email,type,roll,id}}>
             {children}
         </Authcontext.Provider>
 

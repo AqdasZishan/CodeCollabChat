@@ -7,7 +7,7 @@ import ClassroomsContent from './ClassRoom'
 
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { BookOpen, Users, UserCircle, Search, Plus } from "lucide-react"
+import { BookOpen, Users, UserCircle, Search, Plus,LogOut } from "lucide-react"
 import { useContext } from 'react'
 import { Authcontext } from '../AuthProvider'
 import { useNavigate } from 'react-router-dom'
@@ -44,15 +44,26 @@ export default function Home() {
         console.log(err);
         
       })
-  
-   
-    
   }
+  function logout(){
+    localStorage.removeItem("token")
+    navigate("/login")
+  }
+
+  if(!value.name){
+    return <>
+      <div>
+        Loading.....
+      </div>
+      </>
+  }
+ 
 
   return (
     <div className="flex h-screen bg-white">
       {/* Sidebar */}
-      <aside className="w-64 bg-gray-100 p-4">
+      <aside className="w-64 bg-gray-100 p-4  justify-between flex flex-col">
+    <div className=''>
         <h1 className="text-2xl font-bold mb-8 text-gray-800">CollabTool</h1>
         <nav className="space-y-2">
           
@@ -72,7 +83,13 @@ export default function Home() {
             <BookOpen className="w-5 h-5 mr-3" />
             REQUESTS
           </a>
+          
         </nav>
+        </div>
+        <a onClick={()=>{logout()}}  className={` cursor-pointer flex items-center px-4 py-2 rounded-lg ${activeTab === 'request' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
+            <LogOut className="w-5 h-5 mr-3" />
+            Logout
+          </a>
       </aside>
 
       {/* Main content */}
