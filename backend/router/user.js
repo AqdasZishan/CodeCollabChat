@@ -19,7 +19,7 @@ userRouter.post("/create", async (req, res) => {
     try {
          await userSchema.parseAsync(value); 
         console.log(value);
-        if(value.type==="STUDENT" && !value.roll || value.roll.length<=3){
+        if(value.type==="STUDENT" && !value.roll || value.type==="STUDENT" && value.roll.length<=3){
             return res.status(404).json({
                 message:"roll cannot be empty please type roll grater than 3digit"
             })
@@ -79,18 +79,23 @@ userRouter.post("/signin",async(req,res)=>{
             email:value.email
         }
     })    
+    console.log(value);
+    
+    
     if(!user){
         return res.status(404).json({
             message:"user not found"
         })
     }
-    if(user.password!=value.password){
+    if(user.password!==value.password){
         return res.status(404).json({
             message:"wrong password"
         })
     }
     const id=user.id;
     const token =jwt.sign(id,process.env.JWT_SECRET);
+    console.log(user);
+    
     return res.json({
         message:"user logged in successfully",
         token,
@@ -111,14 +116,18 @@ userRouter.post("/signin",async(req,res)=>{
 })
 
 userRouter.get("/details",authmiddlware,async(req,res)=>{
-    const userId=req.USERID;
+    const userId=await req.USERID;
+    console.log({userId});
+    
     
     try{
-        const user =await prisma.user.findFirst({
+        const user =await prisma.user.findUnique({
             where:{
                 id:userId
             }
         })
+        console.log(user);
+        
         if(!user){
             return res.status(404).json({
                 message:"user not found"

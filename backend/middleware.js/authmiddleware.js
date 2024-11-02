@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
 dotenv.config();
 
-export default function authmiddleware(req,res,next){
+export default async  function authmiddleware  (req,res,next){
     let token=req.headers.authorization;
     
     try{
@@ -15,7 +15,7 @@ export default function authmiddleware(req,res,next){
     
     
     
-    const decoded=jwt.verify(token,process.env.JWT_SECRET);
+    const decoded= jwt.verify(token,process.env.JWT_SECRET);
    
     
     if(!decoded){
@@ -24,6 +24,7 @@ export default function authmiddleware(req,res,next){
         })
     }
     
+   
     
     req.USERID=decoded.id;
     next();

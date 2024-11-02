@@ -1,4 +1,4 @@
-import { useContext } from "react"
+import { useContext, useEffect } from "react"
 import { Authcontext } from "../AuthProvider"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button"
 
 export default function ProfileContent() {
     const value=useContext(Authcontext)
+    useEffect(()=>{
+      console.log(value);
+      
+    },[value])
     return (
       <>
         <h2 className="text-3xl font-bold mb-6">Profile</h2>

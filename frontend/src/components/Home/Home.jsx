@@ -13,7 +13,7 @@ import ProfileContent from '../Home/profile'
 import RequestsContent from './request'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('classrooms')
+  const [activeTab, setActiveTab] = useState('')
 
   const value=useContext(Authcontext)
   const navigate=useNavigate();
@@ -61,7 +61,7 @@ export default function Home() {
           
         </nav>
         </div>
-        <a onClick={()=>{logout()}}  className={` cursor-pointer flex items-center px-4 py-2 rounded-lg ${activeTab === 'request' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
+        <a onClick={()=>{logout()}}  className={` cursor-pointer flex items-center px-4 py-2 rounded-lg ${activeTab === 'logout' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
             <LogOut className="w-5 h-5 mr-3" />
             Logout
           </a>
@@ -72,6 +72,7 @@ export default function Home() {
         {activeTab === 'classrooms' && <ClassroomsContent/>}
         {activeTab === 'profile' && <ProfileContent />}
         {activeTab === 'request' && <RequestsContent/>}
+        
       </main>
 
    

@@ -22,7 +22,7 @@ export default function Signin() {
         email,
         password
     }).then(res=>{
-        console.log(res.data.message);
+        console.log(res.data);
         localStorage.setItem("token",`Bearer ${res.data.token}`)
         alert(res.data.message);
         window.location.href="/"
