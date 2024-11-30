@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom"
 import { Authcontext } from "../AuthProvider"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import Project from "./Project"
 
 
 
@@ -21,10 +22,11 @@ export default function ClassroomsContent() {
   const value=useContext(Authcontext)
   const token=localStorage.getItem("token");
   const navigate=useNavigate();
-
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newClassroomName, setNewClassroomName] = useState('')
+  const [classId,setClassId]=useState("")
+  const [insideClass,setInsideClass]=useState(false);
 
   useEffect(()=>{
     
@@ -99,8 +101,10 @@ export default function ClassroomsContent() {
     }).then(res=>{
       if(res.data.status){
         console.log(res.data.status)
+        alert(res.data.status)
       }else{
         console.log(res.data);
+        alert(res.data.message)
       }
     }).catch(err=>{
       console.log(err)
@@ -134,12 +138,16 @@ export default function ClassroomsContent() {
  
   //open the class
   async function OpenClass(classId){
-    navigate(`/class/${classId}`);
+    navigate(`?classId=${classId}`);
+    setClassId(classId);
+    setInsideClass(!insideClass);
   }
 
 
 
     return (
+      <>
+      {insideClass?<Project classroomName={"Class"} classId={classId} setInsideClass={setInsideClass} />:
       <>
         <h2 className="text-3xl font-bold mb-6">Classrooms</h2>
         <div className="flex justify-between items-center mb-6">
@@ -197,6 +205,8 @@ export default function ClassroomsContent() {
 
           </TabsContent>
         </Tabs>
+        </>
+}
 
 
            {/* Join Classroom Modal */}
@@ -247,6 +257,7 @@ export default function ClassroomsContent() {
           </div>
         </DialogContent>
       </Dialog>
+  
       </>
     )
   }

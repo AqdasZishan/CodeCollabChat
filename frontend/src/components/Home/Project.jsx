@@ -9,16 +9,17 @@ import { Label } from "@/components/ui/label"
 import { Search, Plus } from "lucide-react"
 import axios from 'axios'
 import backend from '../../../backend'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Authcontext } from '../AuthProvider'
 
 // Mock data for projects
 
-export default function Project({ classroomName }) {
+export default function Project({ classroomName,classId,setInsideClass }) {
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
   const [projects, setProjects] = useState([])
-  const {classId}=useParams();
+  // const {classId}=useParams();
+  const[searchParams,setSearchParams]=useSearchParams();
   const token=localStorage.getItem("token");
   const value=useContext(Authcontext);
   const navigate=useNavigate();
@@ -62,19 +63,31 @@ export default function Project({ classroomName }) {
     }
 
     async function handleCodeEditor(projectId,projectName,userId){
-      console.log("helloo from code editor whyyy??");
       
-      navigate(`/code/${classId}/${projectId}`,{state:{projectName,userId}});
+      navigate(`/code/${classId}/${projectId}/${projectName}/${userId}`,{state:{projectName,userId}});
     }
 
-    async function handleCodeEditorAll(projectId,projectName,userId){
-      console.log(projectName,userId);
-      
-      navigate(`/code/${classId}/${projectId}`,{state:{projectName,userId}});
-    }
+ 
   useEffect(()=>{
     FetchProjects();
   },[])
+
+  useEffect(() => {
+    const handlePopState = (event) => {
+      event.preventDefault();
+      setInsideClass(false)
+      console.log(searchParams)
+      if(searchParams.has("classId")){
+        searchParams.delete("classId")
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   // Check if value is available
   if (!value || !value.id) {
@@ -102,7 +115,7 @@ export default function Project({ classroomName }) {
         <TabsContent value="all">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <Card key={project.id} onClick={()=>{handleCodeEditorAll(project.id,project.name,project.user.id)}} className="bg-white shadow-sm">
+              <Card key={project.id} onClick={()=>{handleCodeEditor(project.id,project.name,project.user.id)}} className="bg-white shadow-sm">
                 <CardContent className="p-4">
                 <h3 className="text-xl font-semibold">{project.name}</h3>
                   <p className="text-sm text-gray-500">Created by: {project.user.name}</p>

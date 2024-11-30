@@ -215,7 +215,7 @@ router.post("/class/delete/:id",authmiddleware,async (req,res)=>{
 router.post("/class/request/create",authmiddleware,async(req,res)=>{
     const userId=req.USERID;
     const value=req.body; //get (classId)
-    
+    // console.log({value})
     if(!value.classId){
         return res.status(404).json({
             message:"select valid classId"

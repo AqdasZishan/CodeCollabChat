@@ -13,7 +13,7 @@ import ProfileContent from '../Home/profile'
 import RequestsContent from './request'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('')
+  const [activeTab, setActiveTab] = useState('classrooms')
 
   const value=useContext(Authcontext)
   const navigate=useNavigate();

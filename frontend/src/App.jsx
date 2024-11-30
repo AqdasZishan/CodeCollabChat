@@ -39,11 +39,11 @@ function App() {
     <>
  
       <Routes>
-        <Route path="/code/:classId/:projectId" element={<CodeArea/>}> </Route>
+        <Route path="/code/:classId/:projectId/:projectName/:userId" element={<CodeArea/>}> </Route>
         <Route path="/" element={<Home/>}> </Route>
         <Route path="/login" element={<Signin />}> </Route>
         <Route path="/create" element={<SignupPage/>}> </Route>
-        <Route path="/class/:classId" element={<Project/>}></Route>
+        {/* <Route path="/class/:classId" element={<Project/>}></Route> */}
       </Routes>
    
     
