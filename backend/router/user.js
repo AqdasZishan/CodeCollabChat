@@ -93,7 +93,7 @@ userRouter.post("/signin",async(req,res)=>{
         })
     }
     const id=user.id;
-    const token =jwt.sign(id,process.env.JWT_SECRET);
+    const token =jwt.sign({id},process.env.JWT_SECRET);
     console.log(user);
     
     return res.json({

@@ -45,11 +45,23 @@ model project{
   name String
   userId String
   classId String
-  data String?
+  code Code[]
+
 
   user User @relation(fields: [userId],references: [id])
   class Class @relation(fields: [classId],references: [id])
 }
+
+model Code{
+  id String @id
+  projectId String
+  language LanguageCode 
+  data String
+
+  project project @relation(fields: [projectId],references: [id])
+  @@unique([projectId,language])
+}
+
 
 model Request{
   id String @id
@@ -72,4 +84,9 @@ enum UserType{
 enum State{
   PENDING
   REJECTED
+}
+enum LanguageCode{
+   JS
+   JAVA
+   PYTHON
 }

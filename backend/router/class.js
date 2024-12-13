@@ -530,6 +530,80 @@ router.post("/project/delete/:id",authmiddleware,async (req,res)=>{
 })
 
 
+//save code in a project
+router.post("/project/code/save/:id",authmiddleware,async(req,res)=>{
+    const userId=req.USERID;
+    const projectId=req.params.id;
+    const body=req.body; //code , languageName
+    try{
+        const project=await prisma.project.findFirst({
+            where:{
+                id:projectId
+            }
+        })
+        if(!project){
+            return res.status(404).json({
+                message:"project not found"
+            })
+        }
+        const id=uuid()
+        const code=await prisma.code.upsert({
+            where:{
+                projectId_language:{
+                    projectId:projectId,
+                    language:body.language
+                }
+            },
+            update:{
+                data:body.code
+            },
+            create:{
+                id,
+                projectId,
+                language:body.language,
+                data:body.code
+            }
+        })
+
+        return res.json({
+            code
+        })
+
+    }catch(err){    
+        console.log(err);
+        
+    }
+})  
+
+//get code for a project
+router.get("/project/code/:id",authmiddleware,async(req,res)=>{
+    const userId=req.USERID;
+    const projectId=req.params.id;
+    try{
+       const codes=await prisma.code.findMany({
+        where:{
+            projectId:projectId
+        },
+       }) 
+       return res.json({
+        codes
+       })
+
+
+    }catch(err){
+        if(err instanceof ZodError){
+
+        }else{
+            console.log(err);
+            return res.status(404).json({
+                message:"not found"
+            })
+        }
+    }
+
+})
+
+
 
 
 

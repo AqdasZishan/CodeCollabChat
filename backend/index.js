@@ -37,10 +37,10 @@ io.on("connection", (socket) => {
         socket.join(data);
         console.log(data + " joined private room");
     });
-    
-    socket.on("privateMessage", ({ roomid, data }) => {
-        socket.to(roomid).emit("privateMessage", data);
-        console.log({ data, roomid });
+     
+    socket.on("privateMessage", ({ roomid, data,languageCode }) => {
+        socket.to(roomid).emit("privateMessage", data,languageCode);
+        console.log({ data, roomid,languageCode });
     });
 
     // socket.on("publicmessage", (data) => {

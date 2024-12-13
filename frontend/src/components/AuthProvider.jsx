@@ -37,10 +37,7 @@ const AuthProvider=({children})=>{
           })
         }
       },[])
-      useEffect(()=>{
-        console.log({name});
-        
-      },[name])
+    
 
 
     return (

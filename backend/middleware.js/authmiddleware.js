@@ -4,7 +4,7 @@ dotenv.config();
 
 export default async  function authmiddleware  (req,res,next){
     let token=req.headers.authorization;
-    
+    console.log(token)
     try{
     if(!token || !token.startsWith=="Bearer" ){
         return res.status(404).json({
