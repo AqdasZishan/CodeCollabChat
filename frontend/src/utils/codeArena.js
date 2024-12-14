@@ -53,8 +53,9 @@ export const handleRunCode =async ({languageCode,codes,setOutput,setLoading,load
   }
 
   //save code
-  export async function SaveCode(projectId,languageCode,codes,token){
-    console.log(codes)
+  export async function SaveCode(projectId,languageCode,codes,token,setSaveCodeLoading){
+    setSaveCodeLoading(true);
+
     await axios.post(`${backend}/room/project/code/save/${projectId}`,{
       code:codes[languageCode.language],
       language:languageCode.language
@@ -66,8 +67,10 @@ export const handleRunCode =async ({languageCode,codes,setOutput,setLoading,load
     )
     .then((res)=>{
       alert("code saved")
+      setSaveCodeLoading(false);
     })
     .catch((err)=>{
       console.log(err);
+      setSaveCodeLoading(false);
     })
   }

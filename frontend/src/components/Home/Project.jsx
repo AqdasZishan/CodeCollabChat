@@ -11,18 +11,22 @@ import axios from 'axios'
 import backend from '../../../backend'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Authcontext } from '../AuthProvider'
+import { useRecoilState } from 'recoil'
+import { insideClassRoom } from '@/state/roomid'
 
 // Mock data for projects
 
-export default function Project({ classroomName,classId,setInsideClass }) {
+export default function Project({ classroomName }) {
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
   const [projects, setProjects] = useState([])
-  // const {classId}=useParams();
+
   const[searchParams,setSearchParams]=useSearchParams();
+  const classId=searchParams.get("classId")
   const token=localStorage.getItem("token");
   const value=useContext(Authcontext);
   const navigate=useNavigate();
+  const[insideClass,setInsideClass]=useRecoilState(insideClassRoom);
 
   //create project
   async function handleCreateProject(){
@@ -46,7 +50,7 @@ export default function Project({ classroomName,classId,setInsideClass }) {
     
     //fetch all projects
     async function FetchProjects(){
-        
+        console.log({classId})
         await axios.get(`${backend}/room/class/${classId}`,{
             headers:{
                 Authorization:token
@@ -64,7 +68,7 @@ export default function Project({ classroomName,classId,setInsideClass }) {
 
     async function handleCodeEditor(projectId,projectName,userId){
       
-      navigate(`/code/${classId}/${projectId}/${projectName}/${userId}`,{state:{projectName,userId}});
+      navigate(`/code/${classId}/${projectId}/${projectName}/${userId}`,{state:{}});
     }
 
  
@@ -77,9 +81,9 @@ export default function Project({ classroomName,classId,setInsideClass }) {
       event.preventDefault();
       setInsideClass(false)
       console.log(searchParams)
-      if(searchParams.has("classId")){
-        searchParams.delete("classId")
-      }
+      // if(searchParams.has("classId")){
+      //   searchParams.delete("classId")
+      // }
     };
     window.addEventListener("popstate", handlePopState);
     
@@ -88,6 +92,9 @@ export default function Project({ classroomName,classId,setInsideClass }) {
       window.removeEventListener("popstate", handlePopState);
     };
   }, []);
+
+
+
 
   // Check if value is available
   if (!value || !value.id) {

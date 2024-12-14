@@ -19,3 +19,8 @@ export const joinedClasses=atom({
     key:"joinedClass",
     default:[]
 })
+
+export const insideClassRoom=atom({
+    key:"insideClassRoom",
+    default:false
+})

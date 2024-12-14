@@ -25,6 +25,8 @@ import { SaveCode } from "@/utils/codeArena";
 import { handleRunCode } from "@/utils/codeArena";
 import axios from "axios";
 import backend from "../../backend";
+import { useRecoilState } from "recoil";
+import { insideClassRoom } from "@/state/roomid";
 
 const language = {
   [LANGUAGE["JS"].language]: `console.log("hello how are you");`,
@@ -53,8 +55,10 @@ export default function CodeArea() {
   const [output, setOutput] = useState(Output);
 
   const [loading, setLoading] = useState(false);
+  const [saveCodeLoading,setSaveCodeLoading]=useState(false);
   const navigate = useNavigate();
   const token =localStorage.getItem("token")
+  const [insideClass,setInsideClass]=useRecoilState(insideClassRoom);
 
   useEffect(() => {
     socket.emit("privateRoomJoin", projectId);
@@ -63,6 +67,8 @@ export default function CodeArea() {
       setCodes({ ...codes, [languageCode]: code });
     });
   }, []);
+
+    console.log(navigate)
 
   // useEffect(()=>{
   //   console.log({codes})
@@ -79,8 +85,6 @@ export default function CodeArea() {
 
         value.forEach((code)=>{
           const lang=code.language
-         console.log(code)
-          
           setCodes((prev)=>({...prev,[lang]:code.data}))
         })
       })
@@ -115,7 +119,7 @@ export default function CodeArea() {
             <h2 className="text-2xl font-bold text-gray-800">
               Project Name: {projectName}
             </h2>
-            <p className="text-sm text-gray-500">Room Code: {projectId}</p>
+            {/* <p className="text-sm text-gray-500">Room Code: {projectId}</p> */}
           </div>
 
           <div className="space-y-2">
@@ -132,9 +136,9 @@ export default function CodeArea() {
           </div>
 
           <div className="space-y-2">
-            <Button variant="outline" className="w-full justify-start" onClick={() => {SaveCode(projectId,languageCode,codes,token)}}>
+            <Button disabled={saveCodeLoading} variant="outline" className="w-full justify-start" onClick={() => {SaveCode(projectId,languageCode,codes,token,setSaveCodeLoading)}}>
               <Download className="w-4 h-4 mr-2" />
-              Save Code
+              {saveCodeLoading?"saving..":"Save Code"}
             </Button>
 
             <Button
@@ -178,7 +182,9 @@ export default function CodeArea() {
               variant="ghost"
               size="icon"
               onClick={() => {
+                // setInsideClass(true)
                 navigate(-1);
+                
               }}
               className="mr-2"
             >

@@ -7,7 +7,7 @@ import { useRecoilState } from "recoil"
 import { useContext, useEffect, useState } from "react"
 import axios from "axios"
 import backend from "../../../backend"
-import { allclasses, joinedClasses } from "@/state/roomid"
+import { allclasses, insideClassRoom, joinedClasses } from "@/state/roomid"
 import { useNavigate } from "react-router-dom"
 import { Authcontext } from "../AuthProvider"
 import { Label } from "@/components/ui/label"
@@ -26,7 +26,7 @@ export default function ClassroomsContent() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newClassroomName, setNewClassroomName] = useState('')
   const [classId,setClassId]=useState("")
-  const [insideClass,setInsideClass]=useState(false);
+  const [insideClass,setInsideClass]=useRecoilState(insideClassRoom);
 
   useEffect(()=>{
     
@@ -140,8 +140,9 @@ export default function ClassroomsContent() {
   async function OpenClass(classId){
     navigate(`?classId=${classId}`);
     setClassId(classId);
-    setInsideClass(!insideClass);
+    setInsideClass(true);
   }
+  
 
 
 
