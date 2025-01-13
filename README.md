@@ -4,6 +4,7 @@
 - Built using **Node.js** for handling server-side logic.
 - Utilizes **PostgreSQL** as the relational database for efficient data storage.
 - **Prisma** is used as the ORM (Object Relational Mapping) tool for database management.
+- **WebSockets** is used to enable real-time collaboration, allowing two users to code on a single project simultaneously.
 
 ## Frontend
 - Uses **CodeMirror** as the code editor for an interactive and seamless coding experience.
