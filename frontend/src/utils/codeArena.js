@@ -39,7 +39,6 @@ export const handleRunCode =async ({languageCode,codes,setOutput,setLoading,load
           // })
         }).catch(err=>{
           console.log(err);
-          
         })
         setLoading(false)
       // const result = eval(code)
