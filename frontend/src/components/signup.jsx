@@ -1,48 +1,73 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Eye, EyeOff, Mail, User, Hash, UserCheck, Lock, ColumnsIcon } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import backend from '../../backend.js'
+import { useState } from "react";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  User,
+  Hash,
+  UserCheck,
+  Lock,
+  ColumnsIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import backend from "../../backend.js";
 
 export default function SignupPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [email,setemail]=useState();
-  const [name,setname]=useState();
-  const [roll,setroll]=useState();
-  const [password,setpassword]=useState();
-  const [type,settype]=useState("");
-  const navigate=useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setemail] = useState();
+  const [name, setname] = useState();
+  const [roll, setroll] = useState();
+  const [password, setpassword] = useState();
+  const [type, settype] = useState("");
+  const navigate = useNavigate();
 
-  async function handleSignup(){
-    
-    await axios.post(`${backend}/user/create`,{
+  async function handleSignup() {
+    await axios
+      .post(`${backend}/user/create`, {
         email,
         name,
         type,
         password,
         roll,
-    }).then(res=>{
+      })
+      .then((res) => {
         console.log(res.data);
-        localStorage.setItem("token",`Bearer ${res.data.token}`)
-        window.location.href="/"
-    }).catch(err=>{
-      console.log(err);
-      
-        console.log(err.response.data.message)
-    })
+        localStorage.setItem("token", `Bearer ${res.data.token}`);
+        window.location.href = "/";
+      })
+      .catch((err) => {
+        console.log(err);
+
+        console.log(err.response.data.message);
+      });
   }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-primary">Sign Up</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">
+            Sign Up
+          </CardTitle>
           <CardDescription>
             Create an account to join our learning platform.
           </CardDescription>
@@ -52,31 +77,58 @@ export default function SignupPage() {
             <div className="space-y-2">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                <Input onChange={(e)=>{setemail(e.target.value)}} type="email" placeholder="Email" className="pl-10" required />
+                <Input
+                  onChange={(e) => {
+                    setemail(e.target.value);
+                  }}
+                  type="email"
+                  placeholder="Email"
+                  className="pl-10"
+                  required
+                />
               </div>
             </div>
             <div className="space-y-2">
               <div className="relative">
                 <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                <Input onChange={(e)=>{setname(e.target.value)}} type="text" placeholder="Full Name" className="pl-10" required />
+                <Input
+                  onChange={(e) => {
+                    setname(e.target.value);
+                  }}
+                  type="text"
+                  placeholder="Full Name"
+                  className="pl-10"
+                  required
+                />
               </div>
             </div>
             <div className="space-y-2">
-              <div  className={`${type==="TEACHER"?"hidden":""} relative`}>
+              <div className={`${type === "TEACHER" ? "hidden" : ""} relative`}>
                 <Hash className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                <Input onChange={(e)=>{setroll(e.target.value)}} type="text" placeholder="Roll Number" className="pl-10" required />
+                <Input
+                  onChange={(e) => {
+                    setroll(e.target.value);
+                  }}
+                  type="text"
+                  placeholder="Roll Number"
+                  className="pl-10"
+                  required
+                />
               </div>
             </div>
             <div className="space-y-2">
               <div className="relative">
                 <UserCheck className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                <Select onValueChange={(value) => {
+                <Select
+                  onValueChange={(value) => {
                     settype(value);
-                }} required>
+                  }}
+                  required
+                >
                   <SelectTrigger className="w-full pl-10">
                     <SelectValue placeholder="Select User Type" />
                   </SelectTrigger>
-                  <SelectContent >
+                  <SelectContent>
                     <SelectItem value="STUDENT">Student</SelectItem>
                     <SelectItem value="TEACHER">Teacher</SelectItem>
                   </SelectContent>
@@ -86,7 +138,10 @@ export default function SignupPage() {
             <div className="space-y-2">
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                <Input onChange={(e)=>{setpassword(e.target.value)}}
+                <Input
+                  onChange={(e) => {
+                    setpassword(e.target.value);
+                  }}
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   className="pl-10"
@@ -105,9 +160,13 @@ export default function SignupPage() {
                 </button>
               </div>
             </div>
-            <Button onClick={()=>{
-                handleSignup()
-            }} className="w-full" type="submit">
+            <Button
+              onClick={() => {
+                handleSignup();
+              }}
+              className="w-full"
+              type="submit"
+            >
               Sign Up
             </Button>
           </div>
@@ -130,5 +189,5 @@ export default function SignupPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

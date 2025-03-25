@@ -18,6 +18,7 @@ import {
   Lock,
   Coins,
   Cone,
+  MessageSquare,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Authcontext } from "./AuthProvider";
@@ -27,6 +28,7 @@ import axios from "axios";
 import backend from "../../backend";
 import { useRecoilState } from "recoil";
 import { insideClassRoom } from "@/state/roomid";
+import Chat from "./Chat";
 
 const language = {
   [LANGUAGE["JS"].language]: `console.log("hello how are you");`,
@@ -49,16 +51,17 @@ export default function CodeArea() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { projectId, projectName, userId } = useParams();
   const value = useContext(Authcontext);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const [languageCode, SetLanguageCode] = useState(LANGUAGE["JS"]);
   const [codes, setCodes] = useState(language);
   const [output, setOutput] = useState(Output);
 
   const [loading, setLoading] = useState(false);
-  const [saveCodeLoading,setSaveCodeLoading]=useState(false);
+  const [saveCodeLoading, setSaveCodeLoading] = useState(false);
   const navigate = useNavigate();
-  const token =localStorage.getItem("token")
-  const [insideClass,setInsideClass]=useRecoilState(insideClassRoom);
+  const token = localStorage.getItem("token");
+  const [insideClass, setInsideClass] = useRecoilState(insideClassRoom);
 
   useEffect(() => {
     socket.emit("privateRoomJoin", projectId);
@@ -68,40 +71,37 @@ export default function CodeArea() {
     });
   }, []);
 
-    console.log(navigate)
+  console.log(navigate);
 
-  // useEffect(()=>{
-  //   console.log({codes})
-  // },[codes])
-
-  useEffect(()=>{
-    async function getCodes(){
-      await axios.get(`${backend}/room/project/code/${projectId}`,{
-        headers:{
-          Authorization:token
-        }
-      }).then(async (res)=>{
-        const value=res.data.codes;
-
-        value.forEach((code)=>{
-          const lang=code.language
-          setCodes((prev)=>({...prev,[lang]:code.data}))
+  useEffect(() => {
+    async function getCodes() {
+      await axios
+        .get(`${backend}/room/project/code/${projectId}`, {
+          headers: {
+            Authorization: token,
+          },
         })
-      })
+        .then(async (res) => {
+          const value = res.data.codes;
+
+          value.forEach((code) => {
+            const lang = code.language;
+            setCodes((prev) => ({ ...prev, [lang]: code.data }));
+          });
+        });
     }
-    getCodes()
-  },[])
+    getCodes();
+  }, []);
 
   function handleCodeEditor(val, projectId) {
     setCodes({ ...codes, [languageCode.language]: val });
     socket.emit("privateMessage", {
       roomid: projectId,
       data: val,
-      languageCode:languageCode.language,
+      languageCode: languageCode.language,
     });
   }
 
- 
   if (!value) {
     <div>Loading...</div>;
   }
@@ -119,7 +119,6 @@ export default function CodeArea() {
             <h2 className="text-2xl font-bold text-gray-800">
               Project Name: {projectName}
             </h2>
-            {/* <p className="text-sm text-gray-500">Room Code: {projectId}</p> */}
           </div>
 
           <div className="space-y-2">
@@ -136,9 +135,22 @@ export default function CodeArea() {
           </div>
 
           <div className="space-y-2">
-            <Button disabled={saveCodeLoading} variant="outline" className="w-full justify-start" onClick={() => {SaveCode(projectId,languageCode,codes,token,setSaveCodeLoading)}}>
+            <Button
+              disabled={saveCodeLoading}
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                SaveCode(
+                  projectId,
+                  languageCode,
+                  codes,
+                  token,
+                  setSaveCodeLoading
+                );
+              }}
+            >
               <Download className="w-4 h-4 mr-2" />
-              {saveCodeLoading?"saving..":"Save Code"}
+              {saveCodeLoading ? "saving.." : "Save Code"}
             </Button>
 
             <Button
@@ -182,9 +194,7 @@ export default function CodeArea() {
               variant="ghost"
               size="icon"
               onClick={() => {
-                // setInsideClass(true)
                 navigate(-1);
-                
               }}
               className="mr-2"
             >
@@ -215,7 +225,6 @@ export default function CodeArea() {
             </Button>
             <select
               onChange={(e) => {
-                console.log(e.target.value)
                 SetLanguageCode(LANGUAGE[e.target.value]);
               }}
               className="border border-gray-300 rounded-md px-3 py-1.5 bg-white text-sm"
@@ -225,11 +234,18 @@ export default function CodeArea() {
               <option value="PYTHON">Python</option>
               <option value="JAVA">Java</option>
             </select>
+            <button
+              onClick={() => setIsChatOpen(!isChatOpen)}
+              className="p-2 rounded hover:bg-gray-100"
+            >
+              <MessageSquare
+                className={`h-5 w-5 ${isChatOpen ? "text-primary" : ""}`}
+              />
+            </button>
           </div>
         </div>
 
         {/* Editor and output */}
-
         <div className="flex-1 grid grid-rows-2 gap-4 p-6">
           <div className="relative">
             {value.type === "TEACHER" || value.id == userId ? (
@@ -260,13 +276,21 @@ export default function CodeArea() {
           <OutputFn output={output} languageCode={languageCode} />
         </div>
       </div>
+
+      {/* Chat panel */}
+      <div
+        className={`${
+          isChatOpen ? "w-80" : "w-0"
+        } transition-all duration-300 overflow-hidden border-l h-full`}
+      >
+        {isChatOpen && <Chat roomid={projectId} />}
+      </div>
     </div>
   );
 }
 
 //output
 const OutputFn = React.memo(function ({ output, languageCode }) {
-
   return (
     <Card>
       <CardContent className="p-4">
@@ -274,7 +298,6 @@ const OutputFn = React.memo(function ({ output, languageCode }) {
         <div className="bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm overflow-auto max-h-[200px]">
           {output[languageCode.language].length != 0
             ? output[languageCode.language].split("\n").map((line) => {
-                console.log(line);
                 return <div>{line}</div>;
               })
             : "Run your code to see output here"}
