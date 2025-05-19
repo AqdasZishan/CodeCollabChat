@@ -9,7 +9,7 @@ export const userSchema = z.object({
     required_error: "please select a valid user type",
   }),
   password: z
-    .string({ required_error: "password is rquired" })
+    .string({ required_error: "password is required" })
     .min(6, { message: "minimum 6 length of password is required" }),
 });
 export const userSignin = z.object({
