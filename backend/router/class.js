@@ -487,11 +487,61 @@ router.post("/project/delete/:id", authmiddleware, async (req, res) => {
         id: userId,
       },
     });
-    if (user.type == "STUDENT") {
-      return res.status(404).json({
-        message: "student cannot delete the class",
+
+    // If user is a student, create a deletion request
+    if (user.type === "STUDENT") {
+      const project = await prisma.project.findFirst({
+        where: {
+          id: id,
+        },
+        include: {
+          class: {
+            select: {
+              teacherId: true,
+            },
+          },
+        },
+      });
+
+      if (!project) {
+        return res.status(404).json({
+          message: "Project not found",
+        });
+      }
+
+      // Check if a deletion request already exists
+      const existingRequest = await prisma.projectDeletionRequest.findFirst({
+        where: {
+          projectId: id,
+          studentId: userId,
+          state: "PENDING",
+        },
+      });
+
+      if (existingRequest) {
+        return res.status(400).json({
+          message: "A deletion request for this project already exists",
+        });
+      }
+
+      // Create new deletion request
+      const requestId = uuid();
+      await prisma.projectDeletionRequest.create({
+        data: {
+          id: requestId,
+          projectId: id,
+          studentId: userId,
+          teacherId: project.class.teacherId,
+          state: "PENDING",
+        },
+      });
+
+      return res.json({
+        message: "Deletion request sent to teacher",
       });
     }
+
+    // If user is a teacher, proceed with deletion
     const project = await prisma.project.delete({
       where: {
         id: id,
@@ -506,6 +556,135 @@ router.post("/project/delete/:id", authmiddleware, async (req, res) => {
     });
   }
 });
+
+// Get project deletion requests for a teacher
+router.get("/project/deletion-requests", authmiddleware, async (req, res) => {
+  const userId = req.USERID;
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (user.type !== "TEACHER") {
+      return res.status(403).json({
+        message: "Only teachers can view deletion requests",
+      });
+    }
+
+    const requests = await prisma.projectDeletionRequest.findMany({
+      where: {
+        teacherId: userId,
+        state: "PENDING",
+      },
+      include: {
+        project: {
+          select: {
+            name: true,
+            id: true,
+          },
+        },
+        student: {
+          select: {
+            name: true,
+            email: true,
+            roll: true,
+          },
+        },
+      },
+    });
+
+    return res.json({
+      requests,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: err,
+    });
+  }
+});
+
+// Handle project deletion request
+router.post(
+  "/project/deletion-request/handle",
+  authmiddleware,
+  async (req, res) => {
+    const userId = req.USERID;
+    const { requestId, action } = req.body;
+
+    try {
+      const user = await prisma.user.findFirst({
+        where: {
+          id: userId,
+        },
+      });
+
+      if (user.type !== "TEACHER") {
+        return res.status(403).json({
+          message: "Only teachers can handle deletion requests",
+        });
+      }
+
+      const request = await prisma.projectDeletionRequest.findFirst({
+        where: {
+          id: requestId,
+          teacherId: userId,
+          state: "PENDING",
+        },
+      });
+
+      if (!request) {
+        return res.status(404).json({
+          message: "Request not found",
+        });
+      }
+
+      if (action === "APPROVE") {
+        // Delete the project
+        await prisma.project.delete({
+          where: {
+            id: request.projectId,
+          },
+        });
+
+        // Delete the request
+        await prisma.projectDeletionRequest.delete({
+          where: {
+            id: requestId,
+          },
+        });
+
+        return res.json({
+          message: "Project deleted successfully",
+        });
+      } else if (action === "REJECT") {
+        // Update request state to rejected
+        await prisma.projectDeletionRequest.update({
+          where: {
+            id: requestId,
+          },
+          data: {
+            state: "REJECTED",
+          },
+        });
+
+        return res.json({
+          message: "Deletion request rejected",
+        });
+      } else {
+        return res.status(400).json({
+          message: "Invalid action",
+        });
+      }
+    } catch (err) {
+      return res.status(500).json({
+        message: err,
+      });
+    }
+  }
+);
 
 //save code in a project
 router.post("/project/code/save/:id", authmiddleware, async (req, res) => {
@@ -571,5 +750,76 @@ router.get("/project/code/:id", authmiddleware, async (req, res) => {
         message: "not found",
       });
     }
+  }
+});
+
+//rename project
+router.put("/project/rename/:id", authmiddleware, async (req, res) => {
+  const id = req.params.id;
+  const userId = req.USERID;
+  const { name } = req.body;
+
+  try {
+    // Validate input
+    if (!name || name.trim().length === 0) {
+      return res.status(400).json({
+        message: "Project name is required",
+      });
+    }
+
+    // Find the project
+    const project = await prisma.project.findFirst({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    // Check if user is the creator of the project
+    if (project.userId !== userId) {
+      return res.status(403).json({
+        message: "Not authorized to rename this project",
+      });
+    }
+
+    // Update project name
+    const updatedProject = await prisma.project.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name: name.trim(),
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            roll: true,
+            id: true,
+          },
+        },
+        class: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return res.json({
+      message: "Project renamed successfully",
+      project: updatedProject,
+    });
+  } catch (err) {
+    console.error("Error renaming project:", err);
+    return res.status(500).json({
+      message: "Failed to rename project",
+    });
   }
 });

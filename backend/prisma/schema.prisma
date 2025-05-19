@@ -20,6 +20,7 @@ model User{
   roll String
   type UserType
   password String
+  profilePicture String?
 
   classrooms Class[] @relation("Student")
   Teacherclass Class[] @relation("Teacher")
@@ -75,6 +76,21 @@ model Request{
   teacher User @relation("Teacher",fields: [TeacherId],references: [id])
 
   @@unique([classId, StudentId])
+}
+
+model ProjectDeletionRequest {
+  id String @id
+  projectId String
+  studentId String
+  teacherId String
+  state State
+  createdAt DateTime @default(now())
+
+  project project @relation(fields: [projectId], references: [id])
+  student User @relation("StudentDeletionRequest", fields: [studentId], references: [id])
+  teacher User @relation("TeacherDeletionRequest", fields: [teacherId], references: [id])
+
+  @@unique([projectId, studentId])
 }
 
 enum UserType{
