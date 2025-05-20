@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User{
+  id String @id 
+  email String @unique
+  name String 
+  roll String
+  type UserType
+  password String
+
+  classrooms Class[] @relation("Student")
+  Teacherclass Class[] @relation("Teacher")
+  projects project[]
+  StudentRequest Request[] @relation("Student")
+  TeacherRequest Request[] @relation("Teacher")
+}
+
+model Class{
+  id String @id
+  name String @unique
+  teacherId String 
+
+
+  projects project[]
+  students User[] @relation("Student")
+  teacher User @relation("Teacher",fields: [teacherId],references: [id])
+  request Request[]
+  }
+
+model project{
+  id String @id
+  name String
+  userId String
+  classId String
+  code Code[]
+
+
+  user User @relation(fields: [userId],references: [id])
+  class Class @relation(fields: [classId],references: [id])
+}
+
+model Code{
+  id String @id
+  projectId String
+  language LanguageCode 
+  data String
+
+  project project @relation(fields: [projectId],references: [id])
+  @@unique([projectId,language])
+}
+
+
+model Request{
+  id String @id
+  classId String
+  StudentId String
+  TeacherId String
+  state State
+
+  class Class @relation(fields: [classId],references: [id])
+  student User @relation("Student",fields:[StudentId],references: [id])
+  teacher User @relation("Teacher",fields: [TeacherId],references: [id])
+
+  @@unique([classId, StudentId])
+}
+
+enum UserType{
+  STUDENT
+  TEACHER
+}
+enum State{
+  PENDING
+  REJECTED
+}
+enum LanguageCode{
+   JS
+   JAVA
+   PYTHON
+}
