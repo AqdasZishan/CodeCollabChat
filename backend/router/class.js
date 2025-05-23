@@ -119,6 +119,7 @@ router.get("/class/get/teacher", authmiddleware, async (req, res) => {
         teacher: {
           select: {
             name: true,
+            id: true,
           },
         },
       },
@@ -152,6 +153,7 @@ router.get("/class/get/student", authmiddleware, async (req, res) => {
         teacher: {
           select: {
             name: true,
+            id: true,
           },
         },
       },
@@ -179,87 +181,222 @@ router.post("/class/delete/:id", authmiddleware, async (req, res) => {
       },
     });
     if (user.type == "STUDENT") {
-      return res.status(404).json({
-        message: "student cannot delete the class",
+      return res.status(403).json({
+        message: "Students cannot delete classes",
       });
     }
-    const classname = await prisma.class.delete({
+
+    // Check if the classroom exists and belongs to the teacher
+    const classroom = await prisma.class.findFirst({
       where: {
         id: id,
+        teacherId: userId,
       },
     });
+
+    if (!classroom) {
+      return res.status(404).json({
+        message:
+          "Classroom not found or you don't have permission to delete it",
+      });
+    }
+
+    // Delete all related records first
+    await prisma.$transaction(async (tx) => {
+      // Delete all requests for this class
+      await tx.request.deleteMany({
+        where: { classId: id },
+      });
+
+      // Delete all projects and their codes
+      const projects = await tx.project.findMany({
+        where: { classId: id },
+        select: { id: true },
+      });
+
+      for (const project of projects) {
+        await tx.code.deleteMany({
+          where: { projectId: project.id },
+        });
+      }
+
+      await tx.project.deleteMany({
+        where: { classId: id },
+      });
+
+      // Finally delete the class
+      await tx.class.delete({
+        where: { id: id },
+      });
+    });
+
     return res.json({
-      message: `class deleted with name :${classname.name}`,
+      message: `Class "${classroom.name}" has been deleted successfully`,
     });
   } catch (err) {
-    res.status(404).json({
-      message: err,
+    console.error("Error deleting classroom:", err);
+    if (err.code === "P2025") {
+      return res.status(404).json({
+        message: "Classroom not found",
+      });
+    }
+    return res.status(500).json({
+      message: "Failed to delete classroom. Please try again.",
+      error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
-    return;
   }
 });
 
 //request to join classes
 router.post("/class/request/create", authmiddleware, async (req, res) => {
   const userId = req.USERID;
-  const value = req.body; //get (classId)
-  // console.log({value})
-  if (!value.classId) {
-    return res.status(404).json({
-      message: "select valid classId",
+  const { classId, teacherId } = req.body;
+
+  console.log("Received request creation request:", {
+    userId,
+    classId,
+    teacherId,
+  });
+
+  // Validate required fields
+  if (!classId || !teacherId) {
+    console.log("Missing required fields");
+    return res.status(400).json({
+      message: "classId and teacherId are required",
     });
   }
+
   try {
-    const status = await prisma.request.findFirst({
+    // Verify the class exists and belongs to the specified teacher
+    const classExists = await prisma.class.findFirst({
       where: {
-        StudentId: userId,
-        classId: value.classId,
+        id: classId,
+        teacherId: teacherId,
       },
     });
-    //if request is in pendind or rejected
-    if (status) {
-      return res.json({
-        status: status.state,
+
+    if (!classExists) {
+      console.log("Class not found or doesn't belong to the specified teacher");
+      return res.status(404).json({
+        message: "Class not found or invalid teacher",
       });
     }
-    //if you are already in a class logic here and return early
-    const joined = await prisma.class.findFirst({
+
+    // Check if user is a student
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      console.log("User not found");
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    if (user.type !== "STUDENT") {
+      console.log("Only students can request to join classes");
+      return res.status(403).json({
+        message: "Only students can request to join classes",
+      });
+    }
+
+    // Check if user is already in this specific class
+    console.log("Checking if user is already in this specific class...");
+    const isInClass = await prisma.class.findFirst({
       where: {
+        id: classId,
         students: {
           some: {
             id: userId,
           },
         },
       },
-      include: {},
     });
-    console.log({ joined });
+    console.log("User's class membership status:", isInClass);
 
-    if (joined) {
-      return res.json({
-        message: "you are already in the class",
+    if (isInClass) {
+      return res.status(200).json({
+        message: "You are already a member of this class",
       });
     }
 
-    //create  a request
-    const id = uuid();
-    await prisma.request.create({
-      data: {
-        id,
-        classId: value.classId,
+    // Check for existing request
+    console.log("Checking for existing request...");
+    const existingRequest = await prisma.request.findFirst({
+      where: {
         StudentId: userId,
-        TeacherId: value.teacherId,
-        state: "PENDING",
+        classId: classId,
       },
     });
-    return res.json({
-      message: "ask your teacher to let you in",
+    console.log("Existing request status:", existingRequest);
+
+    // If there's an existing request, check its status
+    if (existingRequest) {
+      if (existingRequest.state === "PENDING") {
+        return res.status(200).json({
+          status: existingRequest.state,
+          message: `You already have a ${existingRequest.state.toLowerCase()} request for this class`,
+        });
+      } else if (existingRequest.state === "REJECTED") {
+        // If the previous request was rejected, delete it and create a new one
+        await prisma.request.delete({
+          where: {
+            id: existingRequest.id,
+          },
+        });
+      }
+    }
+
+    // Create the request using a transaction
+    console.log("Creating new request...");
+    const newRequest = await prisma.$transaction(async (tx) => {
+      const id = uuid();
+      return await tx.request.create({
+        data: {
+          id,
+          classId,
+          StudentId: userId,
+          TeacherId: teacherId,
+          state: "PENDING",
+        },
+        include: {
+          student: {
+            select: {
+              name: true,
+              email: true,
+              roll: true,
+            },
+          },
+          class: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+    });
+
+    console.log("Created request:", newRequest);
+
+    return res.status(201).json({
+      message: "Request sent successfully",
+      request: newRequest,
     });
   } catch (err) {
-    res.status(404).json({
-      message: err,
+    console.error("Error creating request:", err);
+
+    // Handle specific error types
+    if (err.code === "P2002") {
+      return res.status(409).json({
+        message: "A request for this class already exists",
+      });
+    }
+
+    return res.status(500).json({
+      message: "Failed to create request",
+      error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
-    return;
   }
 });
 
@@ -482,23 +619,32 @@ router.post("/project/delete/:id", authmiddleware, async (req, res) => {
   const userId = req.USERID;
 
   try {
-    const user = await prisma.user.findFirst({
+    const project = await prisma.project.findFirst({
       where: {
-        id: userId,
+        id: id,
       },
     });
-    if (user.type == "STUDENT") {
+
+    if (!project) {
       return res.status(404).json({
-        message: "student cannot delete the class",
+        message: "Project not found",
       });
     }
-    const project = await prisma.project.delete({
+
+    // Allow deletion if user is the project owner
+    if (project.userId !== userId) {
+      return res.status(403).json({
+        message: "You can only delete your own projects",
+      });
+    }
+
+    await prisma.project.delete({
       where: {
         id: id,
       },
     });
     return res.json({
-      message: `project deleted with name :${project.name}`,
+      message: `Project deleted with name: ${project.name}`,
     });
   } catch (err) {
     return res.status(404).json({
@@ -571,5 +717,157 @@ router.get("/project/code/:id", authmiddleware, async (req, res) => {
         message: "not found",
       });
     }
+  }
+});
+
+//update class name
+router.post("/class/update/:id", authmiddleware, async (req, res) => {
+  const userId = req.USERID;
+  const id = req.params.id;
+  const value = req.body;
+
+  try {
+    await classSchema.parseAsync(value);
+
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (user.type === "STUDENT") {
+      return res.status(404).json({
+        message: "student cannot update the class",
+      });
+    }
+
+    // Check if another room with same name exists
+    const existingRoom = await prisma.class.findFirst({
+      where: {
+        name: value.name,
+        id: {
+          not: id,
+        },
+      },
+    });
+
+    if (existingRoom) {
+      return res.status(404).json({
+        message: "room with this name already exists",
+      });
+    }
+
+    const updatedClass = await prisma.class.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name: value.name,
+      },
+      include: {
+        teacher: {
+          select: {
+            name: true,
+            id: true,
+          },
+        },
+      },
+    });
+
+    return res.json({
+      message: "class updated successfully",
+      class: updatedClass,
+    });
+  } catch (err) {
+    if (err instanceof ZodError) {
+      return res.status(404).json({
+        message: err.issues[0].message,
+      });
+    }
+    return res.status(404).json({
+      message: err,
+    });
+  }
+});
+
+//update project name
+router.post("/project/update/:id", authmiddleware, async (req, res) => {
+  const userId = req.USERID;
+  const id = req.params.id;
+  const value = req.body;
+
+  try {
+    await projectSchema.parseAsync(value);
+
+    const project = await prisma.project.findFirst({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    // Allow update if user is the project owner
+    if (project.userId !== userId) {
+      return res.status(403).json({
+        message: "You can only update your own projects",
+      });
+    }
+
+    // Verify the class exists
+    const classExists = await prisma.class.findFirst({
+      where: {
+        id: value.classId,
+      },
+    });
+
+    if (!classExists) {
+      return res.status(404).json({
+        message: "Class not found",
+      });
+    }
+
+    const updatedProject = await prisma.project.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name: value.name,
+        classId: value.classId,
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            roll: true,
+            id: true,
+          },
+        },
+        class: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return res.json({
+      message: "Project updated successfully",
+      project: updatedProject,
+    });
+  } catch (err) {
+    if (err instanceof ZodError) {
+      return res.status(400).json({
+        message: err.issues[0].message,
+      });
+    }
+    return res.status(500).json({
+      message: err.message || "Failed to update project",
+    });
   }
 });

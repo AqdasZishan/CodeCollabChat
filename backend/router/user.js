@@ -6,6 +6,14 @@ import { ZodError } from "zod";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import authmiddlware from "../middleware.js/authmiddleware.js";
+import {
+  signin,
+  signup,
+  getUsers,
+  updateUser,
+  deleteUser,
+} from "../controllers/user.js";
+import { verifyToken } from "../middleware/auth.js";
 dotenv.config();
 const prisma = new PrismaClient();
 
@@ -71,48 +79,15 @@ userRouter.post("/create", async (req, res) => {
 });
 
 //signin user
-userRouter.post("/signin", async (req, res) => {
-  let value = req.body;
-  try {
-    value = await userSignin.parseAsync(value);
-    const user = await prisma.user.findFirst({
-      where: {
-        email: value.email,
-      },
-    });
-    console.log(value);
+userRouter.post("/signin", signin);
 
-    if (!user) {
-      return res.status(404).json({
-        message: "user not found",
-      });
-    }
-    if (user.password !== value.password) {
-      return res.status(404).json({
-        message: "wrong password",
-      });
-    }
-    const id = user.id;
-    const token = jwt.sign({ id }, process.env.JWT_SECRET);
-    console.log(user);
+// Auth routes
+userRouter.post("/signup", signup);
 
-    return res.json({
-      message: "user logged in successfully",
-      token,
-      user,
-    });
-  } catch (err) {
-    if (err instanceof ZodError) {
-      return res.status(404).json({
-        message: err.issues[0].message,
-      });
-    } else {
-      return res.status(404).json({
-        message: err,
-      });
-    }
-  }
-});
+// Protected routes
+userRouter.get("/", verifyToken, getUsers);
+userRouter.put("/:id", verifyToken, updateUser);
+userRouter.delete("/:id", verifyToken, deleteUser);
 
 userRouter.get("/details", authmiddlware, async (req, res) => {
   const userId = await req.USERID;
@@ -144,5 +119,71 @@ userRouter.get("/details", authmiddlware, async (req, res) => {
       message: err,
     });
     return;
+  }
+});
+
+userRouter.post("/update", authmiddlware, async (req, res) => {
+  const userId = req.USERID;
+  const { name } = req.body;
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { name },
+    });
+
+    return res.json({
+      message: "Profile updated successfully",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        type: user.type,
+        roll: user.roll,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Failed to update profile",
+    });
+  }
+});
+
+userRouter.post("/change-password", authmiddlware, async (req, res) => {
+  const userId = req.USERID;
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    // First verify the current password
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    if (user.password !== currentPassword) {
+      return res.status(401).json({
+        message: "Current password is incorrect",
+      });
+    }
+
+    // Update the password
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: newPassword },
+    });
+
+    return res.json({
+      message: "Password changed successfully",
+    });
+  } catch (err) {
+    console.error("Error changing password:", err);
+    return res.status(500).json({
+      message: "Failed to change password",
+    });
   }
 });
