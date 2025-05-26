@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 import backend from "../../backend";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 
 export const Authcontext = createContext(null);
@@ -15,12 +15,20 @@ const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchUserData = async () => {
+      // Define public routes that don't require authentication
+      const publicRoutes = ['/login', '/create'];
+      const currentPath = location.pathname;
+      
       if (!token) {
         setIsLoading(false);
-        navigate("/login");
+        // Only redirect to login if not already on a public route
+        if (!publicRoutes.includes(currentPath)) {
+          navigate("/login");
+        }
         return;
       }
 
@@ -38,14 +46,17 @@ const AuthProvider = ({ children }) => {
       } catch (err) {
         console.error("Error fetching user data:", err);
         localStorage.removeItem("token");
-        navigate("/login");
+        // Only redirect to login if not already on a public route
+        if (!publicRoutes.includes(currentPath)) {
+          navigate("/login");
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, [token, navigate]);
+  }, [token, navigate, location.pathname]);
 
   if (isLoading) {
     return (
